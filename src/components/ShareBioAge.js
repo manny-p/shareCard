@@ -1,65 +1,68 @@
 import React, { useState } from 'react';
 import BioAge from './BioAge';
-import html2canvas from 'html2canvas';
+import domtoimage from 'dom-to-image';
 
 function ShareBiologicalAge() {
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState(null);
 
-  const handleShareChart = async () => {
+  const handleShareChart = () => {
     setSharing(true);
-    setShareError(null);
+    const bioAgeComponent = document.querySelector('.bio-age-container');
 
-    try {
-      const bioAgeComponent = document.querySelector('.bio-age-container');
+    if (bioAgeComponent) {
+      domtoimage.toPng(bioAgeComponent, {
+        bgcolor: 'white',
+      })
+          .then((dataUrl) => {
+            if (navigator.share) {
+              // Share the chart image using Web Share API
+              navigator.share({
+                text: 'Biological Age Chart',
+                files: [new File([dataUrl], 'biological-age.png', { type: 'image/png' })],
+              });
+            } else {
+              // Fallback for browsers that don't support Web Share API
+              // Create a temporary anchor element for downloading the image
+              const downloadLink = document.createElement('a');
+              downloadLink.href = dataUrl;
+              downloadLink.download = 'biological-age-chart.png';
+              downloadLink.style.display = 'none';
 
-      if (bioAgeComponent) {
-        // Use html2canvas to capture the BioAge component as an image
-        const canvasImage = await html2canvas(bioAgeComponent);
+              // Append the anchor element to the document body
+              document.body.appendChild(downloadLink);
 
-        // Convert the captured image to a data URL
-        const dataUrl = canvasImage.toDataURL('image/png');
+              // Trigger a click event on the anchor to initiate the download
+              downloadLink.click();
 
-        // Check if Web Share API is available
-        if (navigator.share) {
-          // Share the chart image using Web Share API
-          await navigator.share({
-            text: 'Biological Age Chart',
-            files: [new File([dataUrl], 'biological-age.png', { type: 'image/png' })],
+              // Remove the anchor element from the DOM
+              document.body.removeChild(downloadLink);
+
+              alert('Chart image downloaded for manual sharing.');
+            }
+            setSharing(false);
+          })
+          .catch((error) => {
+            console.error('Error capturing BioAge component:', error);
+            setShareError('Error capturing the chart image.');
+            setSharing(false);
           });
-        } else {
-          // Fallback for browsers that don't support Web Share API
-          // Create a temporary anchor element for downloading the image
-          const downloadLink = document.createElement('a');
-          downloadLink.href = dataUrl;
-          downloadLink.download = 'biological-age-chart.png';
-          downloadLink.style.display = 'none';
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-          document.body.removeChild(downloadLink);
-
-          alert('Chart image downloaded for manual sharing.');
-        }
-      } else {
-        setShareError('Error: The BioAge component could not be found.');
-      }
-    } catch (error) {
-      console.error('Error capturing BioAge component:', error);
-      setShareError('Error capturing the chart image.');
-    } finally {
+    } else {
+      setShareError('Error: The BioAge component could not be found.');
       setSharing(false);
     }
   };
 
   return (
       <div>
+        <div className="bio-age-container">
+          <BioAge />
+        </div>
+        {shareError && <div className="error">{shareError}</div>}
         <button onClick={handleShareChart} disabled={sharing}>
           {sharing ? 'Sharing...' : 'Share Biological Age Chart'}
         </button>
         {shareError && <div className="error">{shareError}</div>}
-        <div className="bio-age-container">
-          <BioAge />
-        </div>
       </div>
   );
 }

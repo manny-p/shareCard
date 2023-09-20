@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import BioAge from './BioAge';
 import domtoimage from 'dom-to-image';
 
-function ShareBiologicalAge() {
+function ShareBioAge() {
   const [sharing, setSharing] = useState(false);
   const [shareError, setShareError] = useState(null);
 
@@ -20,6 +20,8 @@ function ShareBiologicalAge() {
               navigator.share({
                 text: 'Biological Age Chart',
                 files: [new File([dataUrl], 'biological-age.jpeg', { type: 'image/jpeg' })],
+              }).catch((error) => {
+                console.error('Error sharing BioAge component:', error);
               });
             } else {
               // Fallback for browsers that don't support Web Share API
@@ -67,4 +69,4 @@ function ShareBiologicalAge() {
   );
 }
 
-export default ShareBiologicalAge;
+export default ShareBioAge;

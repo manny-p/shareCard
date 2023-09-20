@@ -1,55 +1,65 @@
-import React, { useRef } from 'react';
-import BioAge from './BioAge'; // Import the BioAge component
+import React, { useState } from 'react';
+import BioAge from './BioAge';
+import html2canvas from 'html2canvas';
 
 function ShareBiologicalAge() {
-  const canvasRef = useRef(null);
+  const [sharing, setSharing] = useState(false);
+  const [shareError, setShareError] = useState(null);
 
   const handleShareChart = async () => {
-    if (navigator.share) {
-      try {
-        // Get the chart as an image data URL
-        const canvas = canvasRef.current;
-        const dataUrl = canvas.toDataURL();
+    setSharing(true);
+    setShareError(null);
 
-        // Share the chart image using Web Share API
-        await navigator.share({
-          text: 'Biological Age Chart',
-          files: [new File([dataUrl], 'biological-age-chart.png', { type: 'image/png' })],
-        });
-      } catch (error) {
-        console.error('Error sharing chart:', error);
+    try {
+      const bioAgeComponent = document.querySelector('.bio-age-container');
+
+      if (bioAgeComponent) {
+        // Use html2canvas to capture the BioAge component as an image
+        const canvasImage = await html2canvas(bioAgeComponent);
+
+        // Convert the captured image to a data URL
+        const dataUrl = canvasImage.toDataURL('image/png');
+
+        // Check if Web Share API is available
+        if (navigator.share) {
+          // Share the chart image using Web Share API
+          await navigator.share({
+            text: 'Biological Age Chart',
+            files: [new File([dataUrl], 'biological-age.png', { type: 'image/png' })],
+          });
+        } else {
+          // Fallback for browsers that don't support Web Share API
+          // Create a temporary anchor element for downloading the image
+          const downloadLink = document.createElement('a');
+          downloadLink.href = dataUrl;
+          downloadLink.download = 'biological-age-chart.png';
+          downloadLink.style.display = 'none';
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+
+          alert('Chart image downloaded for manual sharing.');
+        }
+      } else {
+        setShareError('Error: The BioAge component could not be found.');
       }
-    } else {
-      // Fallback for browsers that don't support Web Share API
-      try {
-        const canvas = canvasRef.current;
-        const dataUrl = canvas.toDataURL();
-
-        const tempInput = document.createElement('input');
-        tempInput.setAttribute('type', 'text');
-        tempInput.setAttribute('value', dataUrl);
-        document.body.appendChild(tempInput);
-        tempInput.select();
-        document.execCommand('copy');
-        document.body.removeChild(tempInput);
-
-        alert('Chart image copied to clipboard for manual sharing.');
-      } catch (error) {
-        console.error('Error copying chart image to clipboard:', error);
-      }
+    } catch (error) {
+      console.error('Error capturing BioAge component:', error);
+      setShareError('Error capturing the chart image.');
+    } finally {
+      setSharing(false);
     }
   };
 
   return (
       <div>
-        <BioAge />
-        <button onClick={handleShareChart}>Share Biological Age Chart</button>
-        <canvas
-            ref={canvasRef}
-            width={400}
-            height={200}
-            style={{ display: 'none' }} // Hide the canvas element
-        />
+        <button onClick={handleShareChart} disabled={sharing}>
+          {sharing ? 'Sharing...' : 'Share Biological Age Chart'}
+        </button>
+        {shareError && <div className="error">{shareError}</div>}
+        <div className="bio-age-container">
+          <BioAge />
+        </div>
       </div>
   );
 }

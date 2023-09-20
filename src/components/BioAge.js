@@ -16,7 +16,7 @@ function BioAge() {
   const yScale = (value) => (1 - value / 50) * chartHeight;
 
   return (
-      <div>
+      <div className="bio-age-container">
         <h2>Random Graph</h2>
         <svg width={svgWidth} height={svgHeight}>
           {/* Draw lines connecting data points */}

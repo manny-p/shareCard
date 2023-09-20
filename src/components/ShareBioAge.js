@@ -11,7 +11,7 @@ function ShareBiologicalAge() {
     const bioAgeComponent = document.querySelector('.bio-age-container');
 
     if (bioAgeComponent) {
-      domtoimage.toPng(bioAgeComponent, {
+      domtoimage.toJpeg(bioAgeComponent, {
         bgcolor: 'white',
       })
           .then((dataUrl) => {
@@ -19,14 +19,14 @@ function ShareBiologicalAge() {
               // Share the chart image using Web Share API
               navigator.share({
                 text: 'Biological Age Chart',
-                files: [new File([dataUrl], 'biological-age.png', { type: 'image/png' })],
+                files: [new File([dataUrl], 'biological-age.jpeg', { type: 'image/jpeg' })],
               });
             } else {
               // Fallback for browsers that don't support Web Share API
               // Create a temporary anchor element for downloading the image
               const downloadLink = document.createElement('a');
               downloadLink.href = dataUrl;
-              downloadLink.download = 'biological-age-chart.png';
+              downloadLink.download = 'biological-age-chart.jpeg';
               downloadLink.style.display = 'none';
 
               // Append the anchor element to the document body

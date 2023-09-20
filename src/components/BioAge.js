@@ -17,7 +17,7 @@ function BioAge() {
 
   return (
       <div className="bio-age-container">
-        <h2>Bio Age</h2>
+        <h2>Biological Age</h2>
         <h3>Random Graph</h3>
         <svg width={svgWidth} height={svgHeight}>
           {/* Draw lines connecting data points */}
